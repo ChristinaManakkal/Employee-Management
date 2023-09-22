@@ -1,0 +1,7 @@
+/* styles.css or styles.scss */
+/* Define your custom success color */
+.mat-success {
+    background-color: green;
+    color: green;
+  }
+  

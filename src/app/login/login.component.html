@@ -1,0 +1,38 @@
+<div class="container-fluid pt-3" [formGroup]="loginForm">
+    <div class="alert alert-danger" *ngIf="IsAuthenticationFailed">
+      Invalid username or password
+    </div>
+    <mat-card>
+      <h5 class="mat-card-header">Login</h5>
+      <div class="mat-card-content">
+        <div class="form-group mb-3">
+          <mat-form-field>
+            <mat-label>Firstname</mat-label>
+            <input matInput type="text" name="UserName" formControlName="UserName" />
+            <mat-error *ngIf="loginForm.controls.UserName.hasError('required')">
+              Enter UserName
+            </mat-error>
+            <mat-error *ngIf="loginForm.controls.UserName.hasError('minlength')">
+              Minimum 3 characters needed for user name
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div class="form-group mb-3">
+          <mat-form-field>
+            <mat-label>Date of Birth</mat-label>
+            <input matInput type="password" name="Password" formControlName="Password" />
+            <mat-error *ngIf="loginForm.controls.Password.hasError('required')">
+              Enter Password
+            </mat-error>
+            <mat-error *ngIf="loginForm.controls.Password.hasError('minlength')">
+              Minimum 3 characters needed for Password
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div class="d-grid gap-2">
+          <button mat-raised-button color="primary" [disabled]="loginForm.invalid" (click)="login()">Login</button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+  
