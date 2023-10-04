@@ -1,3 +1,7 @@
+const jwt = require('jsonwebtoken');
+const jwtkey = "christina";
+const jwtExpirySeconds = 3000;
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
@@ -70,6 +74,33 @@ app.get('/selectEmployee', (req, res) => {
     });
 });
 
+// app.post('/signin', (req, res) => {
+//     const loginUser = req.body;
+//     const sql = 'SELECT id FROM EMPLOYEE where first_name=? and dob=?';
+//     const values = [
+//         loginUser.first_name,
+//         loginUser.dob
+//     ];
+
+//     connection.query(sql, values, (error, result) => {
+//         if (error) {
+//             console.error('Error executing sign in process:', error);
+//             res.status(500).json({ error: 'Error executing sign in process' });
+//         } else {
+//             if (result.length > 0) {
+//                 // Generate a JWT token after successful authentication
+//                 const userId = result[0].id;
+//                 const token = jwt.sign({ userId }, jwtKey, {
+//                     expiresIn: jwtExpirySeconds, // Set the token expiration time (e.g., 1 hour)
+//                 });
+//                 res.status(200).json({ id: userId, token }); // Include the token in the response
+//             } else {
+//                 res.status(404).json({ error: 'Employee Not Found!' });
+//             }
+//         }
+//     });
+// });
+
 app.post('/signin', (req, res) => {
     const loginUser = req.body;
     const sql = 'SELECT id FROM EMPLOYEE where first_name=? and dob=?';
@@ -83,11 +114,14 @@ app.post('/signin', (req, res) => {
             res.status(500).json({ error: 'Error executing sign in process' });
         } else {
             console.log(result)
-            if(result.length > 0) {
-                res.status(200).json({ id: result[0].id, message: 'Employee Found!' });
-            }
-            else {
-                res.status(404).json({ error: 'Employee Not Found!'})
+            if (result.length > 0) {
+                // Generate a JWT token
+                const user = { id: result[0].id, first_name: loginUser.first_name };
+                const token = jwt.sign(user, jwtkey, { expiresIn: jwtExpirySeconds });
+                
+                res.status(200).json({ id: result[0].id, token, message: 'Employee Found!' });
+            } else {
+                res.status(404).json({ error: 'Employee Not Found!' });
             }
             console.log('Query results:', result);
             for (const row of result) {
@@ -96,6 +130,33 @@ app.post('/signin', (req, res) => {
         }
     });
 });
+//new added
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization'];
+    if (!token) {
+        return res.status(403).json({ error: 'No token provided' });
+    }
+    jwt.verify(token, jwtkey, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: 'Failed to authenticate token' });
+        }
+        req.userId = decoded.id; // Store user ID in the request for later use
+        next();
+    });
+};
+
+// Example usage:
+app.get('/protectedEndpoint', verifyToken, (req, res) => {
+    // This endpoint is protected and requires a valid JWT token
+    // The user ID is available as req.userId
+    res.json({ message: 'This is a protected endpoint', userId: req.userId });
+});
+//new added
+
+
+
+
+
 
 /* Getting values within database to display. */
 app.get('/getEmployee/:id', (req, res) => {
